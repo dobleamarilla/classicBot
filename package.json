@@ -4,7 +4,7 @@
   "description": "Telegram Bot",
   "main": "main.js",
   "scripts": {
-    "start": "tsc && node main.js"
+    "start": "tsc && concurrently --kill-others \"node main.js Cdp\""
   },
   "repository": {
     "type": "git",

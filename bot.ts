@@ -10,8 +10,14 @@ var datosImprimirListado = "";
 var datosImprimirComandas = "";
 
 BotName = process.argv[2];
-if(BotName === undefined) BotName = "Cdp";
-if (BotName=='Cdp')   Token=process.env['BOT_TOKEN'];  
+if(BotName === undefined) BotName="Cdp";
+
+if (BotName=='SecreHit')  Token=process.env['BOT_TOKEN_SecreHit'];
+if (BotName=='Armengol')  Token=process.env['BOT_TOKEN_Armengol'];
+if (BotName=='PaNatural') Token=process.env['BOT_TOKEN_PaNatural'];
+if (BotName=='365Cafe')   Token=process.env['BOT_TOKEN_365Cafe'];
+if (BotName=='FornCarne')   Token=process.env['BOT_TOKEN_FornCarne'];
+if (BotName=='Cdp')   Token=process.env['BOT_TOKEN_Cdp'];
 
 console.log(' Bot Name : ************************** ' + BotName + ' ************************** ');
 const nombresDeDios=",911219941,516979495,1126693304,";  
