@@ -4,7 +4,7 @@
   "description": "Telegram Bot",
   "main": "main.js",
   "scripts": {
-    "start": "tsc && node main.js SecreHit"
+    "start": "tsc && concurrently --kill-others \"node Bot.js SecreHit\" \"node Bot.js Armengol\" \"node Bot.js PaNatural\" \"node Bot.js 365Cafe\" \"node Bot.js FornCarne\""
   },
   "repository": {
     "type": "git",
