@@ -18,6 +18,7 @@ if (BotName=='PaNatural') Token=process.env['BOT_TOKEN_PaNatural'];
 if (BotName=='365Cafe')   Token=process.env['BOT_TOKEN_365Cafe'];
 if (BotName=='FornCarne')   Token=process.env['BOT_TOKEN_FornCarne'];
 if (BotName=='Cdp')   Token=process.env['BOT_TOKEN_Cdp'];
+if (BotName=='test')   Token=process.env['BOT_TOKEN_TEST'];
 
 console.log(' Bot Name : ************************** ' + BotName + ' ************************** ');
 const nombresDeDios=",911219941,516979495,1126693304,";  
@@ -2061,11 +2062,13 @@ async function BotContesta(msg,estat,TipTep) {
 	}
 }		
 				
-function mainBot(msg) {
+function mainBot(msg) 
+{
 	var estat = [{}];
 
 	conexion.recHit('Hit', "select empresa,usuario from Secretaria where aux1='" + msg.from.id + "'").then(RsIdCli => {
-		if (RsIdCli.rowsAffected>0) {
+		if (RsIdCli.rowsAffected>0) 
+		{
 			var Cli_Emp=RsIdCli.recordset[0].empresa;
 			var Cli_Tel=RsIdCli.recordset[0].usuario;
 			var Cli_Nom=msg.from.first_name;
@@ -3381,8 +3384,8 @@ bot.on('polling_error', function(error){
 });
 
 bot.onText(/./, function(msg){
-console.log(msg.from.first_name + "--->" + msg.text);
-	if (nombresDeDios.indexOf(msg.from.id)<0) 	bot.sendMessage('911219941', msg.from.first_name + " Diu : " + msg.text);  // me lo mando a mi pa verlo to....	
+	console.log(msg.from.first_name + "--->" + msg.text);
+	if (nombresDeDios.indexOf(msg.from.id) < 0) 	// ESTA LINEA GENERA ERROR, LA COMENTO - bot.sendMessage('911219941', msg.from.first_name + " Diu : " + msg.text);  // me lo mando a mi pa verlo to....	
 	if (msg.chat.type=='group' || msg.chat.type=='supergroup') {
 		if (msg.text=='BotoFicha') bot.sendMessage(msg.chat.id, 'Actualitza la meva ficha',{reply_markup: JSON.stringify({inline_keyboard: [[{text: 'Actualitza Ficha',  	'callback_data': 'Fichar Edit Propia'}]],hide_keyboard: false,resize_keyboard: true,one_time_keyboard: true, }),});
 		if (msg.text.indexOf('cul')>=0) bot.deleteMessage(msg.chat.id, msg.message_id);
@@ -3428,4 +3431,4 @@ bot.on('location', (msg) => {
 	}	
 });
 
-export {botsendMessage}
+export {botsendMessage, bot, mainBot}
