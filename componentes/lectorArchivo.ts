@@ -11,11 +11,9 @@ bot.on('photo', function(msg) {
                 var timestamp = Date.now();
                 downloadImage(`https://api.telegram.org/file/bot${bot.token}/${res.file_path}`, sesion.idTrabajador, res.file_path, timestamp).then(()=>{
                     var path = `${__dirname}\\upload\\${sesion.idTrabajador}_${timestamp}.${getExtension(res.file_path)}`;
-                    console.log(path);
-
                     var data = fs.readFileSync(path);
                     textractScan(data).then(res=>{
-                        console.log(res);
+                        botsendMessage(msg, JSON.stringify(res));
                     });
                 });
             });
