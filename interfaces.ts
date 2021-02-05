@@ -1,17 +1,11 @@
 interface loginObject
 {
     error: boolean,
-    idUsuarioHit: number,
-    database: string,
-    tipoUsuario: string,
-    nombre: string,
-    idUsuarioTelegram: number,
-    email: string,
-    telefono: string,
-    chatId: number,
-    idioma: string,
-    empresa: string,
-    mensaje?: string
+    database?: string,
+    telefono?: string,
+    nombre?: string,
+    tipoUsuario?: string,
+    idTrabajador?: number
 }
 
 interface menuObject

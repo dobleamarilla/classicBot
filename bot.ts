@@ -2062,51 +2062,75 @@ async function BotContesta(msg,estat,TipTep) {
 	}
 }		
 				
-function mainBot(msg) 
+function mainBot(msg, contesta = true): Promise<loginObject>
 {
 	var estat = [{}];
-
-	conexion.recHit('Hit', "select empresa,usuario from Secretaria where aux1='" + msg.from.id + "'").then(RsIdCli => {
-		if (RsIdCli.rowsAffected>0) 
-		{
-			var Cli_Emp=RsIdCli.recordset[0].empresa;
-			var Cli_Tel=RsIdCli.recordset[0].usuario;
-			var Cli_Nom=msg.from.first_name;
-			var Sql="select d.codi Codi,d.nom,de.valor from ( ";
-			Sql+="select id as codi from dependentesExtes where nom='TLF_MOBIL' and   ";
-			Sql+="(valor = '" + Cli_Tel + "' or '+34' + valor = '" + Cli_Tel + "') union   ";
-			Sql+="select id as codi from dependentesExtes where nom='TLF_MOBIL' and   ";
-			Sql+="(valor = '" + Cli_Tel + "' or '34' + valor = '" + Cli_Tel + "') union   ";
-			Sql+="select codi from dependentes where   ";
-			Sql+="(telefon = '" + Cli_Tel + "' or '+34' + telefon = '" + Cli_Tel + "') union ";
-			Sql+="select codi from dependentes where   ";
-			Sql+="(telefon = '" + Cli_Tel + "' or '34' + telefon = '" + Cli_Tel + "') ";
-			Sql+="	) a   ";
-			Sql+="join dependentes d on d.codi = a.codi   "
-			Sql+="join (select * from dependentesextes where nom = 'TIPUSTREBALLADOR') de on d.codi=de.id  "
-	//botsendMessage(msg,Sql)
-			conexion.recHit(Cli_Emp, Sql).then(RsTipTep => {
-				var TipTep ="ClientNoIdentificat";
-				var Cli_Codi=0
-				if(RsTipTep.rowsAffected>0) {
-					TipTep  =RsTipTep.recordset[0].valor;
-					Cli_Codi=RsTipTep.recordset[0].Codi;
-					Cli_Nom =RsTipTep.recordset[0].nom
-					estat = [{'id': new Date(),'TimeStamp': new Date(),'CodiUser': Cli_Codi,'Variable': 'Cli_Emp','Valor': Cli_Emp,'Texte': 'Estat inicial Autocreat','Auxiliar1': Cli_Nom ,'Auxiliar2': '.','Auxiliar3': '.','Auxiliar4': '.'}];
-					BotContesta(msg,estat,TipTep).then(NouEstat => {	});
-				}else{
-					bot.sendPhoto(msg.from.id, 'help.jpg', { caption: 'Hem canviat coses..... Tornam a Enviar el teu numero de telefon.'}); 
-					const opts = {reply_markup: JSON.stringify({keyboard: [[{text: 'Contact', request_contact: true}],],hide_keyboard: false,resize_keyboard: true,one_time_keyboard: true,}),};
-					botsendMessage(msg, 'Hem canviat coses..... Tornam a Enviar el teu numero de telefon.', opts);			
-				}
-			});
-		} else {
-			bot.sendPhoto(msg.from.id, 'help.jpg', { caption: 'No et tinc fixat. Enviam el teu numero de telefon.'}); 
-			const opts = {reply_markup: JSON.stringify({keyboard: [[{text: 'Contact', request_contact: true}],],hide_keyboard: false,resize_keyboard: true,one_time_keyboard: true,}),};
-			botsendMessage(msg, 'No et tinc fixat. Enviam el teu numero de telefon.', opts);			
- 		}				
-		});
+	var devolver: Promise<loginObject> = new Promise((dev, rej)=>{
+		conexion.recHit('Hit', "select empresa,usuario from Secretaria where aux1='" + msg.from.id + "'").then(RsIdCli => {
+			if (RsIdCli.rowsAffected > 0) 
+			{
+				var Cli_Emp = RsIdCli.recordset[0].empresa;
+				var Cli_Tel = RsIdCli.recordset[0].usuario;
+				var Cli_Nom = msg.from.first_name;
+				var Sql = "select d.codi Codi,d.nom,de.valor from ( ";
+				Sql += "select id as codi from dependentesExtes where nom='TLF_MOBIL' and   ";
+				Sql += "(valor = '" + Cli_Tel + "' or '+34' + valor = '" + Cli_Tel + "') union   ";
+				Sql += "select id as codi from dependentesExtes where nom='TLF_MOBIL' and   ";
+				Sql += "(valor = '" + Cli_Tel + "' or '34' + valor = '" + Cli_Tel + "') union   ";
+				Sql += "select codi from dependentes where   ";
+				Sql += "(telefon = '" + Cli_Tel + "' or '+34' + telefon = '" + Cli_Tel + "') union ";
+				Sql += "select codi from dependentes where   ";
+				Sql += "(telefon = '" + Cli_Tel + "' or '34' + telefon = '" + Cli_Tel + "') ";
+				Sql += "	) a   ";
+				Sql += "join dependentes d on d.codi = a.codi   "
+				Sql += "join (select * from dependentesextes where nom = 'TIPUSTREBALLADOR') de on d.codi=de.id  "
 	
+				conexion.recHit(Cli_Emp, Sql).then(RsTipTep => {
+					var TipTep = "ClientNoIdentificat";
+					var Cli_Codi = 0
+	
+					if(RsTipTep.rowsAffected > 0) 
+					{
+						TipTep  =	RsTipTep.recordset[0].valor;
+						Cli_Codi=	RsTipTep.recordset[0].Codi;
+						Cli_Nom =	RsTipTep.recordset[0].nom
+						estat 	= 	[{'id': new Date(),'TimeStamp': new Date(),'CodiUser': Cli_Codi,'Variable': 'Cli_Emp','Valor': Cli_Emp,'Texte': 'Estat inicial Autocreat','Auxiliar1': Cli_Nom ,'Auxiliar2': '.','Auxiliar3': '.','Auxiliar4': '.'}];
+						if(contesta) BotContesta(msg,estat,TipTep).then(NouEstat => {	});
+						var sesion: loginObject = {
+							error: false,
+							database: Cli_Emp,
+							telefono: Cli_Tel,
+							nombre: Cli_Nom,
+							tipoUsuario: TipTep,
+							idTrabajador: Cli_Codi
+						};
+						dev(sesion);
+					}
+					else
+					{
+						bot.sendPhoto(msg.from.id, 'help.jpg', { caption: 'Hem canviat coses..... Tornam a Enviar el teu numero de telefon.'}); 
+						const opts = {reply_markup: JSON.stringify({keyboard: [[{text: 'Contact', request_contact: true}],],hide_keyboard: false,resize_keyboard: true,one_time_keyboard: true,}),};
+						botsendMessage(msg, 'Hem canviat coses..... Tornam a Enviar el teu numero de telefon.', opts);		
+						var sesion: loginObject = {
+							error: true
+						};	
+						dev(sesion);
+					}
+				});
+			} 
+			else 
+			{
+				bot.sendPhoto(msg.from.id, 'help.jpg', { caption: 'No et tinc fixat. Enviam el teu numero de telefon.'}); 
+				const opts = {reply_markup: JSON.stringify({keyboard: [[{text: 'Contact', request_contact: true}],],hide_keyboard: false,resize_keyboard: true,one_time_keyboard: true,}),};
+				botsendMessage(msg, 'No et tinc fixat. Enviam el teu numero de telefon.', opts);
+				var sesion: loginObject = {
+					error: true
+				};			
+				dev(sesion);
+			 }				
+		});
+	});
+	return devolver;
 }
 
 function tecnic(msg, estat , TipTep){
@@ -3405,25 +3429,15 @@ bot.on("contact",(msg)=>{
   buscaId(msg);
 });
 
-bot.on('photo', function(msg) {
-	bot.sendMessage('911219941', msg.from.first_name + " Envia foto");  // me lo mando a mi pa verlo to....	
-	var photoId = msg.photo[msg.photo.length-1].file_id;
-	var path = bot.downloadFile(photoId, ".").then(function (path) {
-	msg.photo[0].file_unique_id = path;
-    console.log(path);
-	mainBot(msg);
-  });
-});
-
-
 bot.on('location', (msg) => {
 	//bot.sendMessage('911219941', msg.from.first_name + " Envia Posicio");  // me lo mando a mi pa verlo to....	
 
-	if(msg.venue===undefined){
+	if(msg.venue === undefined)
+	{
 		msg.data='Fichar Ficha'
 		mainBot(msg)
-		var lat= msg.location.latitude;
-		var lon= msg.location.longitude;
+		var lat = msg.location.latitude;
+		var lon = msg.location.longitude;
 		bot.sendMessage(msg.from.id, 'has fixat desde  ' + lat + ',' + lon);
 	}
 	else{
