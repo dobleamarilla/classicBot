@@ -3459,7 +3459,7 @@ bot.on('polling_error', function (error) {
 
 bot.onText(/./, function (msg) {
 	console.log(msg.from.first_name + "--->" + msg.text);
-	if (nombresDeDios.indexOf(msg.from.id) < 0) 	// ESTA LINEA GENERA ERROR, LA COMENTO - bot.sendMessage('911219941', msg.from.first_name + " Diu : " + msg.text);  // me lo mando a mi pa verlo to....	
+	//if (nombresDeDios.indexOf(msg.from.id) < 0) 	// ESTA LINEA GENERA ERROR, LA COMENTO - bot.sendMessage('911219941', msg.from.first_name + " Diu : " + msg.text);  // me lo mando a mi pa verlo to....	
 		if (msg.chat.type == 'group' || msg.chat.type == 'supergroup') {
 			if (msg.text == 'BotoFicha') bot.sendMessage(msg.chat.id, 'Actualitza la meva ficha', { reply_markup: JSON.stringify({ inline_keyboard: [[{ text: 'Actualitza Ficha', 'callback_data': 'Fichar Edit Propia' }]], hide_keyboard: false, resize_keyboard: true, one_time_keyboard: true, }), });
 			if (msg.text.indexOf('cul') >= 0) bot.deleteMessage(msg.chat.id, msg.message_id);
