@@ -1150,7 +1150,7 @@ function Llistats(msg, estat, TipTep) {
 			Borra = msg.data.split('#')[5]
 			today = new Date(new Date().getTime() + (86400000 * off))
 
-			/*Sql="select max(left(masa,40)) masa, codi, art, str(max(fact),8,3) fact, sum(qd) qd, str(sum(tot),8,3) tot  "
+			Sql="select max(left(masa,40)) masa, codi, art, str(max(fact),8,3) fact, sum(qd) qd, str(sum(tot),8,3) tot  "
 			Sql+="from (  "
 			Sql+="select isnull(m.codi, 0) codi, isnull(m.grup,'**Altres**') masa, a.nom art, isnull(m.factor,1)/isnull(m.piezas,1) fact, sum(QuantitatDemanada)-sum(s.quantitatTornada) qd, "
 			Sql+="CONVERT(decimal(18,3), max(isnull(m.factor,1)/isnull(m.piezas,1)) * (sum(s.QuantitatDemanada)-sum(s.quantitatTornada) )) tot "
@@ -1166,14 +1166,14 @@ function Llistats(msg, estat, TipTep) {
 			conexion.recHit(estat[0].Valor, Sql).then(info => {
 				t='Llistat Produccio ' + equip + ' Data ' + dataStrLL(today) + '\n'
 				masa=''
-				su=0
+				var su=0
 				info.recordset.forEach(element => {
 //console.log(element.art.substring(0, 15) )
 					if (masa!=element.masa && su>0){t+="<b>------------------------------------\n                      Total : " + su.toFixed(3) + '</b>\n'; su=0}
 					if (masa!=element.masa) t+=" <b>" + element.masa + '</b> \n'
 					masa=element.masa
-					sqd='   ' + element.qd 
-					sArt = element.art + '                     '
+					var sqd='   ' + element.qd 
+					var sArt = element.art + '                     '
 					t+= '<code> '+ sqd.substr(sqd.length - 3)  + ' ' + sArt.substring(0, 15)  + element.fact  + element.tot +  '</code> ' + ' \n'
 					su+=Number( element.tot)
 				});
@@ -1189,7 +1189,7 @@ function Llistats(msg, estat, TipTep) {
 				//			\\{'parse_mode': 'HTML'}
 				if (Borra=='0') bot.deleteMessage(msg.from.id, msg.message.message_id)
 				botsendMessage(msg,t, {'parse_mode': 'HTML',reply_markup: JSON.stringify({inline_keyboard: keyboard})});
-			})*/
+			})
 			console.log(equip, masa, today);
 			insertarFeinesAFer(msg, estat[0].Valor, equip, masa, today);
 			//botsendMessage(msg, Sql);			
@@ -2016,6 +2016,7 @@ async function BotContesta(msg, estat, TipTep) {
 		default:
 			switch (acc) {
 				case "Su":
+					console.log("BUSCANDO A SU");
 					if (nombresDeDios.indexOf(msg.from.id) || TipTep == 'GERENT') {
 						logaSu(msg, estat);
 						return;
