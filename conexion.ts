@@ -41,7 +41,7 @@ async function recHit(database, consultaSQL) {
             sql.close();
         }).catch(err => {
 //            console.log(err);
-            console.log("SQL: ", consultaSQL)
+            console.log("ERROR EN SQL: ", consultaSQL, err)
             sql.close();
         });
     });

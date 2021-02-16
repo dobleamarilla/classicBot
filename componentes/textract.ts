@@ -1,14 +1,15 @@
 const _ = require("lodash");
 import AWS from 'aws-sdk';
-
-
+AWS.config.region = 'eu-west-1';
 AWS.config.update({
   accessKeyId: process.env['accessKeyId'],
   secretAccessKey: process.env['secretAccessKey'],
   region: process.env['region']
 });
 
-const textract = new AWS.Textract();
+AWS.config.region = 'eu-west-1';
+var textract = new AWS.Textract();
+
 
 const getText = (result, blocksMap) => {
   let text = "";
@@ -108,3 +109,60 @@ module.exports = async buffer => {
 
   return undefined;
 };
+
+module.exports = async (buffer,nom) => {
+console.log('Ep ' + nom )
+
+// Create S3 service object
+var s3 = new AWS.S3({apiVersion: '2006-03-01'});
+var bucketParams = {
+  Bucket : 'pdftotext627582130'
+};
+
+    // call S3 to retrieve upload file to specified bucket
+    var uploadParams = {Bucket: 'pdftotext627582130', Key: nom, Body: buffer};
+    // call S3 to retrieve upload file to specified bucket
+    s3.upload (uploadParams, function (err, data) {
+      if (err) {
+        console.log("Error", err);
+      } if (data) {
+console.log("Upload Success", data.Location);
+                // Set parameters for the API
+        var params = {
+            DocumentLocation: { /* required */
+            S3Object: {
+            Bucket: 'pdftotext627582130',
+            Name: 'arn:aws:s3:::pdftotext627582130/prova.pdf'
+            }
+        },
+        FeatureTypes: [ /* required */
+          'TABLES','FORMS'
+        ],
+        NotificationChannel: {
+          RoleArn: 'RoleArn', /* required */
+          SNSTopicArn: 'SNSTopicArn'/* required */
+        }
+        };
+console.log(params)
+        textract.startDocumentAnalysis(params, function(err, data) {
+          if (err) console.log(err, err.stack); // an error occurred
+          else     console.log(data);           // successful response
+        });
+      }
+    });
+
+
+  
+};
+
+
+
+
+
+
+
+
+
+
+
+
