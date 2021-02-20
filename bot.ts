@@ -1917,7 +1917,7 @@ function accio(msg) {
 	if (msg.text !== undefined && msg.text.toUpperCase() == 'E') return 'Enquesta';
 
 	if (msg.text !== undefined && msg.text == 'Fotos') return 'VerFotos';
-	if (msg.photo !== undefined) return 'photo';
+	//if (msg.photo !== undefined) return 'photo';
 
 	if (msg.data !== undefined && msg.data.split(' ')[0].length > 0) return msg.data.split(' ')[0];
 	if (msg.data !== undefined) return msg.data;
@@ -1994,13 +1994,13 @@ async function BotContesta(msg, estat, TipTep) {
 					botsendMessage(msg, 'Tens un perfil d usuari de : ' + TipTep + ' No pots accedir a aquesta informaci� ');
 					return;
 				case 'FotoPujada':
-					botGuardaFoto(msg, estat);
+					//botGuardaFoto(msg, estat);
 					return;
 				case "photo":
-					botGuardaFoto(msg, estat);
+					//botGuardaFoto(msg, estat);
 					return;
 				case "VerFotos":
-					botRespondeFoto(msg, estat);
+					//botRespondeFoto(msg, estat);
 					return;
 				case "Cfg":
 				case "Configura":
