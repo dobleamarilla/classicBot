@@ -45,18 +45,30 @@ async function enviarKeyboardTurnos(arrayTurnos: Array<any>, idTrabajador: numbe
             }
         }
 }
-async function getHorasPlan(idChat: number, idPlan: string, database: string, tabla: string, algoParaSumar = {cantidad: 0, tipo: '', operacion: ''})
+async function getHorasPlan(idChat: number, idPlan: string, database: string, tabla: string, idAuxiliar: number, opts, algoParaSumar = {cantidad: 0, operacion: ''})
 {
-    var resultado = await conexion.recHit(database, `SELECT idPlan, idTurno FROM ${tabla} WHERE (idTurno like '%Aprendiz%' OR idTurno like '%Coordinacion%' OR idTurno like '%Extra%') AND idPlan = '${idPlan}'`);
+    var sql = `SELECT idPlan, idTurno FROM ${tabla} WHERE (idTurno like '%Aprendiz%' OR idTurno like '%Coordinacion%' OR idTurno like '%Extra%') AND idPlan = '${idPlan}'`;
+    
+    var resultado = await conexion.recHit(database, sql);
+
     var horas = 0;
-    if(resultado.recordset.lenght > 0)
+    var tipo = '';
+    if(resultado.recordset.length > 0)
     {
         //Ya tiene horas de algún tipo añadidas
         var infoUgly = resultado.recordset[0].idTurno.split("_");
+
         if(algoParaSumar.cantidad > 0)
         {
+            switch(algoParaSumar.operacion[2])
+            {
+                case 'A': tipo = 'Aprendiz'; break; 
+                case 'E': tipo = 'Extra'; break;
+                case 'C': tipo = 'Coordinacion'; break;
+            }
+
             //Hay que sumar las horas que vienen por parámetro
-            if(infoUgly[1] == algoParaSumar.tipo) //Si es el mismo tipo se añaden
+            if(infoUgly[1] == tipo) //Si es el mismo tipo se añaden
             {
                 horas = (algoParaSumar.operacion[0] == 'S') ? Number(infoUgly[0]) + algoParaSumar.cantidad : Number(infoUgly[0]) - algoParaSumar.cantidad;
             }
@@ -64,7 +76,7 @@ async function getHorasPlan(idChat: number, idPlan: string, database: string, ta
             { //Sino, se restablece el contador con el nuevo tipo
                 horas = (algoParaSumar.operacion[0] == 'S') ? algoParaSumar.cantidad : algoParaSumar.cantidad*-1;
             }
-            await conexion.recHit(database, `UPDATE ${tabla} SET idTurno = '${horas}_${algoParaSumar.tipo}' WHERE idPlan = '${idPlan}'`);
+            await conexion.recHit(database, `UPDATE ${tabla} SET idTurno = '${horas}_${tipo}' WHERE idPlan = '${idPlan}'`);
         }
         else
         {
@@ -76,49 +88,59 @@ async function getHorasPlan(idChat: number, idPlan: string, database: string, ta
     {
         if(algoParaSumar.cantidad > 0)
         {
+            switch(algoParaSumar.operacion[2])
+            {
+                case 'A': tipo = 'Aprendiz'; break; 
+                case 'E': tipo = 'Extra'; break;
+                case 'C': tipo = 'Coordinacion'; break;
+            }
             //Hay que sumar las horas que vienen por parámetro
             horas = (algoParaSumar.operacion[0] == 'S') ? algoParaSumar.cantidad : algoParaSumar.cantidad*-1;
-            await conexion.recHit(database, `UPDATE ${tabla} SET idTurno = '${horas}_${algoParaSumar.tipo}' WHERE idPlan = '${idPlan}'`);
+            await conexion.recHit(database, `UPDATE ${tabla} SET idTurno = '${horas}_${tipo}' WHERE idPlan = '${idPlan}'`);
         }
     }
     
-    if(resultado.recordset.lenght > 0)
+    if(resultado.recordset.length > 0)
     {
-        var tipoFinal = (algoParaSumar.cantidad > 0) ? algoParaSumar.tipo : infoUgly[1];
-        generarTeclasHoras(idPlan, tipoFinal, horas, idChat);
+        var tipoFinal = (algoParaSumar.cantidad > 0) ? tipo : infoUgly[1];
+        generarTeclasHoras(idPlan, tipoFinal, horas, idChat, idAuxiliar, opts);
     }
     else
     {
-        //Es la primera vez que se accede a este menú, no hay ningún tipo ni cantidad.
-        generarTeclasHoras(idPlan, '', 0, idChat);
+        if(horas > 0)
+        {
+            generarTeclasHoras(idPlan, tipo, horas, idChat, idAuxiliar, opts);
+        }
+        else
+        {
+            generarTeclasHoras(idPlan, '', 0, idChat, idAuxiliar, opts);
+        }
     }
     
 }
 
-function generarTeclasHoras(idPlan: string, tipoHoras: string, horas, idChat: number)
+function generarTeclasHoras(idPlan: string, tipoHoras: string, horas, idChat: number, idAuxiliar: number, opts: {chat_id: any;message_id: any;})
 {
-    var texto = '';
-    if(horas == 0 && tipoHoras == '')
-    {
-        texto = 'No hay horas de ningún tipo asignadas por el momento';
-    }
-    else
-    {
-        texto = `Hay ${horas} h acumuladas de tipo ${tipoHoras}`;
-    }
     var lineas = [];
 
-    lineas.push([{text: `Sumar 0,5h extra`, callback_data: JSON.stringify({acc: 'SHE', id: `${idPlan}`})}]);
-    lineas.push([{text: `Restar 0,5h extra`, callback_data: JSON.stringify({acc: 'RHE', id: `${idPlan}`})}]);
-    lineas.push([{text: `Sumar 0,5h coordinación`, callback_data: JSON.stringify({acc: 'SHC', id: `${idPlan}`})}]);
-    lineas.push([{text: `Restar 0,5h coordinación`, callback_data: JSON.stringify({acc: 'RHC', id: `${idPlan}`})}]);
-    lineas.push([{text: `Sumar 0,5h aprendiz`, callback_data: JSON.stringify({acc: 'SHA', id: `${idPlan}`})}]);
-    lineas.push([{text: `Restar 0,5h aprendiz`, callback_data: JSON.stringify({acc: 'RHA', id: `${idPlan}`})}]);
-    bot.sendMessage(idChat, texto, {
-        reply_markup: {
-        inline_keyboard: lineas      
-        }
-    });
+    var horasAprendiz = 0, horasCoordinacion = 0 , horasExtra = 0;
+    switch(tipoHoras)
+    {
+        case 'Aprendiz': horasAprendiz = horas; break;
+        case 'Coordinacion': horasCoordinacion = horas; break;
+        case 'Extra': horasExtra = horas; break;
+        default: break;
+    }
+
+    lineas.push([{text: `+ 0,5h extra (Ahora hay ${horasExtra})`, callback_data: JSON.stringify({acc: 'SHE', idAuxiliar: `${idAuxiliar}`})}]);
+    lineas.push([{text: `- 0,5h extra (Ahora hay ${horasExtra})`, callback_data: JSON.stringify({acc: 'RHE', idAuxiliar: `${idAuxiliar}`})}]);
+    lineas.push([{text: `+ 0,5h coordinación (Ahora hay ${horasCoordinacion})`, callback_data: JSON.stringify({acc: 'SHC', idAuxiliar: `${idAuxiliar}`})}]);
+    lineas.push([{text: `- 0,5h coordinación (Ahora hay ${horasCoordinacion})`, callback_data: JSON.stringify({acc: 'RHC', idAuxiliar: `${idAuxiliar}`})}]);
+    lineas.push([{text: `+ 0,5h aprendiz (Ahora hay ${horasAprendiz})`, callback_data: JSON.stringify({acc: 'SHA', idAuxiliar: `${idAuxiliar}`})}]);
+    lineas.push([{text: `- 0,5h aprendiz (Ahora hay ${horasAprendiz})`, callback_data: JSON.stringify({acc: 'RHA', idAuxiliar: `${idAuxiliar}`})}]);
+
+    bot.editMessageReplyMarkup({inline_keyboard: lineas, hide_keyboard: false, resize_keyboard: true, one_time_keyboard: true}, opts);
+
 }
 
 bot.on('message', function(msg) {
@@ -171,17 +193,19 @@ function generarTecladoHoras(sesion: loginObject, idPlan, tipoHora)
 bot.on('callback_query', async (msg) => {
     var callbackData = JSON.parse(msg.data);
     let chatId = msg.message.chat.id;
+    var opts = {chat_id: chatId, message_id: msg.message.message_id}
+
     switch(callbackData.acc)
     {
         case 'updTurno': 
             mainBot(msg, false).then(sesion=>{
                 if(!sesion.error)
                 {
-                    conexion.recHit('hit', 'select dato1 as nombreTabla, dato2 as idPlan, dato3 as idTrabajador, dato4 as idCodigoAccion, dato5 as idTurno from bot_auxiliar where id = ' + callbackData.id).then(res=>{
+                    conexion.recHit('hit', 'select id, dato1 as nombreTabla, dato2 as idPlan, dato3 as idTrabajador, dato4 as idCodigoAccion, dato5 as idTurno from bot_auxiliar where id = ' + callbackData.id).then(res=>{
                         conexion.recHit(sesion.database, `UPDATE ${res.recordset[0].nombreTabla} SET idEmpleado = ${res.recordset[0].idTrabajador} WHERE idPlan = '${res.recordset[0].idPlan}'
                                                         UPDATE CodigosDeAccion SET Param9 = 'REVISADO' WHERE IdCodigo = '${res.recordset[0].idCodigoAccion}';
                                                             `).then(ok=>{
-                            getHorasPlan(chatId, res.recordset[0].idPlan, sesion.database, res.recordset[0].nombreTabla);
+                            getHorasPlan(chatId, res.recordset[0].idPlan, sesion.database, res.recordset[0].nombreTabla, res.recordset[0].id, opts);
                         });
                     });
                 }
@@ -220,6 +244,25 @@ bot.on('callback_query', async (msg) => {
                 if(!sesion.error)
                 {
                     bot.sendMessage(chatId, 'Introduce las horas de coordinación a sumar')
+                }
+                else
+                {
+                    bot.sendMessage(chatId, 'Error en la sesión');
+                }
+            });
+            break;
+        case 'SHE':
+        case 'RHE':
+        case 'SHC':
+        case 'RHC':
+        case 'SHA':
+        case 'RHA': 
+            mainBot(msg, false).then(sesion=>{
+                if(!sesion.error)
+                {
+                    conexion.recHit('hit', `SELECT dato1 as nombreTabla, dato2 as idPlan FROM bot_auxiliar WHERE id = ${callbackData.idAuxiliar}`).then(res=>{
+                        getHorasPlan(chatId, res.recordset[0].idPlan, sesion.database, res.recordset[0].nombreTabla, callbackData.idAuxiliar, opts, {cantidad: 0.5, operacion: callbackData.acc});
+                    });
                 }
                 else
                 {
